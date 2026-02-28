@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* Moroccan Riad palette */
   --color-gold-50: #fdf8ed;
   --color-gold-100: #f9edcc;
   --color-gold-200: #f3d894;
@@ -51,34 +50,93 @@
   --font-arabic: 'Amiri', 'Noto Naskh Arabic', serif;
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  background-color: var(--color-night-900);
+  background-color: #0c0a08;
   color: var(--color-gold-100);
   min-height: 100dvh;
+  overflow-x: hidden;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-night-900);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-gold-600);
-  border-radius: 3px;
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-gold-700); border-radius: 2px; }
+
+/* === STARRY SKY === */
+.starry-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(212,145,29,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(14,149,94,0.03) 0%, transparent 50%),
+    #0c0a08;
 }
 
-/* Animations */
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--dur, 3s) ease-in-out infinite alternate;
+  opacity: 0;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.1; transform: scale(0.8); }
+  100% { opacity: var(--max-op, 0.8); transform: scale(1.2); }
+}
+
+/* === LANTERN === */
+@keyframes lanternSwing {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes lanternGlow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(212,145,29,0.4)); }
+  50% { filter: drop-shadow(0 0 16px rgba(212,145,29,0.7)); }
+}
+
+.lantern {
+  animation: lanternSwing 4s ease-in-out infinite, lanternGlow 3s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.lantern-delay { animation-delay: 1.5s; }
+
+/* === ANIMATIONS === */
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes successPulse {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes shimmer {
@@ -86,46 +144,39 @@ body {
   100% { background-position: 200% 0; }
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+.animate-fade-in-scale { animation: fadeInScale 0.4s ease-out forwards; }
+.animate-slide-down { animation: slideDown 0.4s ease-out forwards; }
+.animate-success-pulse { animation: successPulse 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(212, 145, 29, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(212,145,29,0.15), transparent);
   background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: shimmer 3s infinite;
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
+/* Confetti */
+.confetti-piece {
+  position: fixed;
+  top: -20px;
+  z-index: 100;
+  animation: confettiFall var(--fall-dur, 3s) linear forwards;
+  animation-delay: var(--delay, 0s);
 }
 
-/* Stagger children animations */
-.stagger-children > * {
-  opacity: 0;
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
-.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
-.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
-
-/* Moroccan pattern overlay */
+/* === MOROCCAN PATTERN === */
 .moroccan-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4911d' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4911d' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* === DROPDOWN CUSTOM === */
+.dropdown-glow:focus {
+  box-shadow: 0 0 0 2px rgba(212,145,29,0.15), 0 4px 20px rgba(212,145,29,0.1);
+}
+
+/* === ORDER RECAP CARD === */
+.recap-card {
+  background: linear-gradient(135deg, rgba(76,68,62,0.4) 0%, rgba(26,20,16,0.8) 100%);
+  backdrop-filter: blur(8px);
 }
