@@ -72,8 +72,8 @@ export default function OrderPage() {
       setSelections({ boisson: null, entree: null, plat: null, dessert: null })
       setRemarks('')
       setTimeout(() => setSuccess(false), 4000)
-    } catch {
-      setError("Erreur lors de l'envoi. Reessayez.")
+    } catch (err) {
+      setError("Erreur: " + (err instanceof Error ? err.message : String(err)))
     } finally {
       setSubmitting(false)
     }
