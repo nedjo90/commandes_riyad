@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import * as XLSX from 'xlsx'
 import OrderCard from '../components/OrderCard'
 import { fetchOrders, fetchMenuItems, deleteOrder } from '../lib/menu'
 import type { MenuItem, Order } from '../types/database'
@@ -24,6 +25,68 @@ export default function OrdersListPage() {
     if (!confirm('Supprimer cette commande ?')) return
     await deleteOrder(id)
     setOrders((prev) => prev.filter((o) => o.id !== id))
+  }
+
+  const getItem = (id: number | null) =>
+    id ? menuItems.find((m) => m.id === id) : null
+
+  const handleExportExcel = () => {
+    const rows = orders.map((order) => {
+      const boisson = getItem(order.boisson_id)
+      const entree = getItem(order.entree_id)
+      const plat = getItem(order.plat_id)
+      const dessert = getItem(order.dessert_id)
+      return {
+        Nom: order.guest_name,
+        Boisson: boisson?.name ?? '',
+        'Prix Boisson': boisson?.price ?? 0,
+        Entree: entree?.name ?? '',
+        'Prix Entree': entree?.price ?? 0,
+        Plat: plat?.name ?? '',
+        'Prix Plat': plat?.price ?? 0,
+        Dessert: dessert?.name ?? '',
+        'Prix Dessert': dessert?.price ?? 0,
+        TOTAL: Number(order.total),
+        Remarques: order.remarks ?? '',
+      }
+    })
+
+    // Add total row
+    const grandTotal = orders.reduce((sum, o) => sum + Number(o.total), 0)
+    rows.push({
+      Nom: 'TOTAL GENERAL',
+      Boisson: '',
+      'Prix Boisson': 0,
+      Entree: '',
+      'Prix Entree': 0,
+      Plat: '',
+      'Prix Plat': 0,
+      Dessert: '',
+      'Prix Dessert': 0,
+      TOTAL: grandTotal,
+      Remarques: `${orders.length} commandes`,
+    })
+
+    const ws = XLSX.utils.json_to_sheet(rows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 18 }, // Nom
+      { wch: 35 }, // Boisson
+      { wch: 10 }, // Prix Boisson
+      { wch: 30 }, // Entree
+      { wch: 10 }, // Prix Entree
+      { wch: 40 }, // Plat
+      { wch: 10 }, // Prix Plat
+      { wch: 30 }, // Dessert
+      { wch: 10 }, // Prix Dessert
+      { wch: 10 }, // TOTAL
+      { wch: 25 }, // Remarques
+    ]
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Commandes Iftar')
+    XLSX.writeFile(wb, `commandes_iftar_le_riad.xlsx`)
   }
 
   const grandTotal = orders.reduce((sum, o) => sum + Number(o.total), 0)
@@ -62,14 +125,22 @@ export default function OrdersListPage() {
         </div>
       </div>
 
-      {/* Refresh */}
-      <div className="px-4 mb-4">
+      {/* Action buttons */}
+      <div className="px-4 mb-4 space-y-2">
         <button
           onClick={loadData}
           className="w-full py-2.5 rounded-xl border border-gold-500/20 bg-gold-500/5 text-gold-300 text-sm font-medium hover:bg-gold-500/10 transition-all active:scale-[0.98]"
         >
           🔄 Rafraichir les commandes
         </button>
+        {orders.length > 0 && (
+          <button
+            onClick={handleExportExcel}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-sm font-semibold hover:from-emerald-500 hover:to-emerald-600 transition-all active:scale-[0.98] shadow-lg shadow-emerald-600/25"
+          >
+            📥 Telecharger Excel pour le restaurant
+          </button>
+        )}
       </div>
 
       {/* Orders list */}
