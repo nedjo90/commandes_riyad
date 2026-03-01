@@ -24,7 +24,7 @@ export default function OrderPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [successData, setSuccessData] = useState<{ name: string; total: number } | null>(null)
+  const [successData, setSuccessData] = useState<{ name: string; total: number; platName: string | undefined } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [guestName, setGuestName] = useState('')
@@ -89,7 +89,7 @@ export default function OrderPage() {
         remarks: fullRemarks || null,
         total,
       })
-      setSuccessData({ name: guestName.trim(), total })
+      setSuccessData({ name: guestName.trim(), total, platName: getSelectedItem('plat')?.name })
       setGuestName('')
       setSelections({ boisson: null, entree: null, plat: null, dessert: null })
       setActiveSups({})
@@ -267,6 +267,7 @@ export default function OrderPage() {
           <SuccessOverlay
             guestName={successData.name}
             total={successData.total}
+            platName={successData.platName}
             onClose={() => setSuccessData(null)}
           />
         )}
