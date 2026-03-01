@@ -205,7 +205,7 @@ export default function OrderPage() {
                 {catSups.length > 0 && (
                   <div className="mt-2 space-y-1.5 pl-1">
                     {catSups.map((sup) => (
-                      <label key={sup.key} className="flex items-center gap-3 cursor-pointer group">
+                      <label key={sup.key} onClick={() => toggleSup(sup.key)} className="flex items-center gap-3 cursor-pointer group">
                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all
                           ${activeSups[sup.key]
                             ? 'bg-gold-500 border-gold-500'
