@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import OrderCard from '../components/OrderCard'
 import { fetchOrders, fetchMenuItems, deleteOrder } from '../lib/menu'
+import { parseSupplements } from '../lib/supplements'
 import type { MenuItem, Order } from '../types/database'
 
 export default function OrdersListPage() {
@@ -31,62 +32,81 @@ export default function OrdersListPage() {
     id ? menuItems.find((m) => m.id === id) : null
 
   const handleExportExcel = () => {
-    const rows = orders.map((order) => {
+    // Build rows with sub-rows for supplements
+    type Row = (string | number)[]
+    const header: Row = [
+      'Nom', 'Boisson', 'Prix', 'Entree', 'Prix', 'Plat', 'Prix', 'Dessert', 'Prix', 'TOTAL', 'Remarques',
+    ]
+    const rows: Row[] = [header]
+
+    for (const order of orders) {
       const boisson = getItem(order.boisson_id)
       const entree = getItem(order.entree_id)
       const plat = getItem(order.plat_id)
       const dessert = getItem(order.dessert_id)
-      return {
-        Nom: order.guest_name,
-        Boisson: boisson?.name ?? '',
-        'Prix Boisson': boisson?.price ?? 0,
-        Entree: entree?.name ?? '',
-        'Prix Entree': entree?.price ?? 0,
-        Plat: plat?.name ?? '',
-        'Prix Plat': plat?.price ?? 0,
-        Dessert: dessert?.name ?? '',
-        'Prix Dessert': dessert?.price ?? 0,
-        TOTAL: Number(order.total),
-        Remarques: order.remarks ?? '',
+      const { userRemarks, supplements } = parseSupplements(order.remarks)
+
+      // Main row
+      rows.push([
+        order.guest_name,
+        boisson?.name ?? '', boisson?.price ?? 0,
+        entree?.name ?? '', entree?.price ?? 0,
+        plat?.name ?? '', plat?.price ?? 0,
+        dessert?.name ?? '', dessert?.price ?? 0,
+        Number(order.total),
+        userRemarks,
+      ])
+
+      // Sub-rows for supplements, placed under the category they belong to
+      for (const sup of supplements) {
+        const subRow: Row = ['', '', 0, '', 0, '', 0, '', 0, '', '']
+        // Place supplement under correct category column
+        if (sup.linkedTo === 'boisson') {
+          subRow[1] = `  ↳ ${sup.name}`
+          subRow[2] = sup.price
+        } else if (sup.linkedTo === 'entree') {
+          subRow[3] = `  ↳ ${sup.name}`
+          subRow[4] = sup.price
+        } else if (sup.linkedTo === 'plat') {
+          subRow[5] = `  ↳ ${sup.name}`
+          subRow[6] = sup.price
+        } else if (sup.linkedTo === 'dessert') {
+          subRow[7] = `  ↳ ${sup.name}`
+          subRow[8] = sup.price
+        }
+        rows.push(subRow)
       }
-    })
+    }
 
-    // Add total row
+    // Grand total row
     const grandTotal = orders.reduce((sum, o) => sum + Number(o.total), 0)
-    rows.push({
-      Nom: 'TOTAL GENERAL',
-      Boisson: '',
-      'Prix Boisson': 0,
-      Entree: '',
-      'Prix Entree': 0,
-      Plat: '',
-      'Prix Plat': 0,
-      Dessert: '',
-      'Prix Dessert': 0,
-      TOTAL: grandTotal,
-      Remarques: `${orders.length} commandes`,
-    })
+    rows.push([])
+    rows.push([
+      'TOTAL GENERAL', '', '', '', '', '', '', '', '',
+      grandTotal,
+      `${orders.length} commandes`,
+    ])
 
-    const ws = XLSX.utils.json_to_sheet(rows)
+    const ws = XLSX.utils.aoa_to_sheet(rows)
 
-    // Set column widths
+    // Column widths
     ws['!cols'] = [
       { wch: 18 }, // Nom
-      { wch: 35 }, // Boisson
-      { wch: 10 }, // Prix Boisson
-      { wch: 30 }, // Entree
-      { wch: 10 }, // Prix Entree
-      { wch: 40 }, // Plat
-      { wch: 10 }, // Prix Plat
-      { wch: 30 }, // Dessert
-      { wch: 10 }, // Prix Dessert
-      { wch: 10 }, // TOTAL
+      { wch: 40 }, // Boisson
+      { wch: 10 }, // Prix
+      { wch: 35 }, // Entree
+      { wch: 10 }, // Prix
+      { wch: 45 }, // Plat
+      { wch: 10 }, // Prix
+      { wch: 35 }, // Dessert
+      { wch: 10 }, // Prix
+      { wch: 12 }, // TOTAL
       { wch: 25 }, // Remarques
     ]
 
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Commandes Iftar')
-    XLSX.writeFile(wb, `commandes_iftar_le_riad.xlsx`)
+    XLSX.writeFile(wb, 'commandes_iftar_le_riad.xlsx')
   }
 
   const grandTotal = orders.reduce((sum, o) => sum + Number(o.total), 0)

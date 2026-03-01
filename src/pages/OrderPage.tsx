@@ -75,9 +75,12 @@ export default function OrderPage() {
     setSubmitting(true)
     setError(null)
 
-    // Build supplements string for remarks
-    const supsList = SUPPLEMENTS.filter((s) => activeSups[s.key]).map((s) => s.label)
-    const fullRemarks = [remarks.trim(), ...supsList.map((s) => `+ ${s}`)].filter(Boolean).join(' | ')
+    // Build supplements JSON + user remarks
+    const selectedSups = SUPPLEMENTS
+      .filter((s) => activeSups[s.key])
+      .map((s) => ({ name: s.label, price: s.price, linkedTo: s.linkedTo }))
+    const supsJson = selectedSups.length > 0 ? JSON.stringify(selectedSups) : ''
+    const fullRemarks = [remarks.trim(), supsJson ? `||SUPS::${supsJson}` : ''].filter(Boolean).join('')
 
     try {
       await createOrder({
