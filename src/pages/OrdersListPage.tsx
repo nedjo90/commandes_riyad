@@ -39,12 +39,21 @@ export default function OrdersListPage() {
     ]
     const rows: Row[] = [header]
 
+    let computedGrandTotal = 0
+
     for (const order of orders) {
       const boisson = getItem(order.boisson_id)
       const entree = getItem(order.entree_id)
       const plat = getItem(order.plat_id)
       const dessert = getItem(order.dessert_id)
       const { userRemarks, supplements } = parseSupplements(order.remarks)
+
+      // Compute total from actual prices
+      const itemsSum = (boisson?.price ?? 0) + (entree?.price ?? 0) + (plat?.price ?? 0) + (dessert?.price ?? 0)
+      const supsSum = supplements.reduce((s, sup) => s + sup.price, 0)
+      const orderTotal = Math.round((itemsSum + supsSum) * 100) / 100
+
+      computedGrandTotal += orderTotal
 
       // Main row
       rows.push([
@@ -53,7 +62,7 @@ export default function OrdersListPage() {
         entree?.name ?? '', entree?.price ?? 0,
         plat?.name ?? '', plat?.price ?? 0,
         dessert?.name ?? '', dessert?.price ?? 0,
-        Number(order.total),
+        orderTotal,
         userRemarks,
       ])
 
@@ -79,7 +88,7 @@ export default function OrdersListPage() {
     }
 
     // Grand total row
-    const grandTotal = orders.reduce((sum, o) => sum + Number(o.total), 0)
+    const grandTotal = Math.round(computedGrandTotal * 100) / 100
     rows.push([])
     rows.push([
       'TOTAL GENERAL', '', '', '', '', '', '', '', '',

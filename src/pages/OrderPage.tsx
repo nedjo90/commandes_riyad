@@ -65,7 +65,7 @@ export default function OrderPage() {
     .filter((s) => activeSups[s.key])
     .reduce((sum, s) => sum + s.price, 0)
 
-  const total = selectedItems.reduce((sum, item) => sum + item.price, 0) + supplementsTotal
+  const total = Math.round((selectedItems.reduce((sum, item) => sum + item.price, 0) + supplementsTotal) * 100) / 100
   const itemCount = selectedItems.filter((i) => i.price > 0).length
 
   const canSubmit = guestName.trim().length > 0 && selectedItems.length > 0
